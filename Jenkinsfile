@@ -20,6 +20,30 @@ pipeline {
             }
         }
         
+        stage('Diag Chrome') {
+  steps {
+    sh '''
+      set -eux
+      whoami
+      uname -a
+      arch
+
+      which chromium-browser || true
+      which chromium || true
+      which google-chrome || true
+      which chromedriver || true
+
+      /usr/bin/chromedriver --version || true
+      chromium-browser --version || true
+      chromium --version || true
+      google-chrome --version || true
+
+      file /usr/bin/chromedriver || true
+      ldd /usr/bin/chromedriver | head -n 50 || true
+    '''
+  }
+}
+        
         stage('Build&Test') {
   steps {
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
