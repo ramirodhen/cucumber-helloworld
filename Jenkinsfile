@@ -5,14 +5,14 @@ pipeline {
         stage('Get Code')
         {
             steps{
-                bat 'dir'
-                bat 'echo %WORKSPACE%'
+                sh 'ls -la'
+                sh 'echo %WORKSPACE%'
             }
         }
         stage('Get Code') {
             steps {
                 // Obtener código del repo
-                // git branch: "master", url: 'https://github.com/anieto-unir/cucumber-helloworld.git'
+                // git branch: "master", url: 'https://github.com/ramirodhen/cucumber-helloworld.git'
 				script {
 					scmVars = checkout scm
 					echo 'scm : the commit id is ' + scmVars.GIT_COMMIT
@@ -24,7 +24,7 @@ pipeline {
         {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    bat 'mvn test'
+                    sh 'mvn test -e   -Dselenide.browser=chrome   -Dwebdriver.chrome.driver=/usr/bin/chromedriver   -Dselenide.browserBinary=/usr/bin/chromium-browser   -	Dselenide.headless=true'
                 }
             }
         }
