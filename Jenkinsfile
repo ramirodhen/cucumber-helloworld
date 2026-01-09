@@ -2,14 +2,14 @@ pipeline {
     agent any
     
     stages {
-        stage('Get Code')
+        stage('Get Code 1')
         {
             steps{
                 sh 'ls -la'
-                sh 'echo %WORKSPACE%'
+                sh 'echo $WORKSPACE'
             }
         }
-        stage('Get Code') {
+        stage('Get Code 2') {
             steps {
                 // Obtener código del repo
                 // git branch: "arreglado", url: 'https://github.com/ramirodhen/cucumber-helloworld.git'
@@ -24,7 +24,13 @@ pipeline {
         {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh 'mvn test -e   -Dselenide.browser=chrome   -Dwebdriver.chrome.driver=/usr/bin/chromedriver   -Dselenide.browserBinary=/usr/bin/chromium-browser   -	Dselenide.headless=true'
+                    sh '''
+            mvn test -e \
+              -Dselenide.browser=chrome \
+              -Dwebdriver.chrome.driver=/usr/bin/chromedriver \
+              -Dselenide.browserBinary=/usr/bin/chromium-browser \
+              -Dselenide.headless=true
+          '''
                 }
             }
         }
