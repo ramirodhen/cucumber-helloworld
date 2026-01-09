@@ -45,40 +45,43 @@ pipeline {
       }
     }
 
-    stage('Build&Test') {
-      steps {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          sh '''
-            set -eux
+stage('Build&Test') {
+  steps {
+    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+      sh '''
+        set -eux
 
-            # Elegir binario del navegador que exista de verdad en este nodo
-            if command -v chromium-browser >/dev/null 2>&1; then
-              BROWSER_BIN="$(command -v chromium-browser)"
-            elif command -v chromium >/dev/null 2>&1; then
-              BROWSER_BIN="$(command -v chromium)"
-            elif command -v google-chrome >/dev/null 2>&1; then
-              BROWSER_BIN="$(command -v google-chrome)"
-            else
-              echo "No encuentro chromium/chrome en este nodo"
-              exit 1
-            fi
-            echo "Using browser binary: $BROWSER_BIN"
+        if command -v chromium-browser >/dev/null 2>&1; then
+          BROWSER_BIN="$(command -v chromium-browser)"
+        elif command -v chromium >/dev/null 2>&1; then
+          BROWSER_BIN="$(command -v chromium)"
+        elif command -v google-chrome >/dev/null 2>&1; then
+          BROWSER_BIN="$(command -v google-chrome)"
+        else
+          echo "No encuentro chromium/chrome en este nodo"
+          exit 1
+        fi
+        echo "Using browser binary: $BROWSER_BIN"
 
-            # Perfil por build, sin caracteres raros (BUILD_TAG a veces rompe rutas)
-            PROFILE_DIR="/tmp/chrome-jenkins-${BUILD_NUMBER}"
-            rm -rf "$PROFILE_DIR"
-            mkdir -p "$PROFILE_DIR"
+        PROFILE_DIR="/tmp/chrome-jenkins-${BUILD_NUMBER}"
+        rm -rf "$PROFILE_DIR"
+        mkdir -p "$PROFILE_DIR"
 
-            mvn test -e \
-              -Dselenide.browser=chrome \
-              -Dwebdriver.chrome.driver=/usr/bin/chromedriver \
-              -Dselenide.browserBinary="$BROWSER_BIN" \
-              -Dselenide.headless=true \
-              -Dselenide.browserCapabilities='{"goog:chromeOptions":{"args":["--headless=new","--no-sandbox","--disable-dev-shm-usage","--disable-gpu","--user-data-dir='${PROFILE_DIR}'"]}}'
-          '''
-        }
-      }
+        rm -f /tmp/chromedriver.log
+
+        mvn test -e \
+          -Dselenide.browser=chrome \
+          -Dwebdriver.chrome.driver=/usr/bin/chromedriver \
+          -Dselenide.browserBinary="$BROWSER_BIN" \
+          -Dselenide.headless=true \
+          -Dwebdriver.chrome.verboseLogging=true \
+          -Dwebdriver.chrome.logfile=/tmp/chromedriver.log \
+          -Dselenide.browserCapabilities='{"goog:chromeOptions":{"args":["--headless=new","--no-sandbox","--disable-dev-shm-usage","--disable-gpu","--user-data-dir='${PROFILE_DIR}'"]}}' \
+        || (echo "===== chromedriver.log (tail) =====" && tail -n 200 /tmp/chromedriver.log || true; exit 1)
+      '''
     }
+  }
+}
 
     stage('Results') {
       steps {
