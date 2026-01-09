@@ -25,12 +25,13 @@ pipeline {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-            mvn test -e \
-              -Dselenide.browser=chrome \
-              -Dwebdriver.chrome.driver=/usr/bin/chromedriver \
-              -Dselenide.browserBinary=/usr/bin/chromium-browser \
-              -Dselenide.headless=true
-          '''
+  mvn test -e \
+    -Dselenide.browser=chrome \
+    -Dwebdriver.chrome.driver=/usr/bin/chromedriver \
+    -Dselenide.browserBinary=/usr/bin/chromium-browser \
+    -Dselenide.headless=true \
+    -Dselenide.browserCapabilities='{"goog:chromeOptions":{"args":["--no-sandbox","--disable-dev-shm-usage"]}}'
+'''
                 }
             }
         }
